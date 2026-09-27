@@ -12,9 +12,11 @@ native ShilpiDB-backed drawing can live in one store.
 
 Status: **Phase 01 milestone.** The .NET solution builds clean (`dotnet build
 AccelDraw.sln`, 0 errors/warnings against the AutoCAD 2022 reference
-assemblies) and both unit test projects pass in full. Not yet verified: a
-real NETLOAD session against AutoCAD, and the ShilpiDB bridge (needs a Rust
-toolchain — see [docs/PLAN-OF-ACTION.md](docs/PLAN-OF-ACTION.md) for current status).
+assemblies) and both unit test projects pass in full. The ShilpiDB native
+bridge builds too (`cargo build --release -p accel-bridge-native`) and its
+smoke test round-trips real put/get/query/delete calls against a live
+`shilpid`. The one thing still unverified: a real NETLOAD session inside
+AutoCAD itself — see [docs/PLAN-OF-ACTION.md](docs/PLAN-OF-ACTION.md).
 
 ## Why this exists
 

@@ -41,8 +41,10 @@ assemblies). Not yet run inside real AutoCAD.**
 - [x] `AccelDraw.ShilpiDb` (entity <-> record mapping: bbox + JSON payload,
       plus one tile-boundary record per snapshot from its manually-defined extent)
 - [x] `ACCELDRAW_SHILPI_STATUS`, `ACCELDRAW_SHILPI_PUSH`
-- [ ] **First real build** of the Rust crate (`cargo build -p accel-bridge-native`)
-      and the smoke test against a real `shilpid` — install `rustup` first
+- [x] **First real build** of the Rust crate — `cargo build --release -p
+      accel-bridge-native` compiled clean against the pinned `shilpidb`/
+      `shilpi-client` commit; `AccelDraw.Bridge.Smoke` round-tripped
+      put/get/query_bbox/delete against a real `shilpid` (`SMOKE PASSED`)
 - [ ] `ACCELDRAW_SHILPI_PULL` / an overlay-from-ShilpiDB command (the read
       side `ShilpiSnapshotSync.TryPull`/`QueryRegion` already support)
 - [ ] Replace FNV-1a entity ids with content-addressed ids (mirroring AADT's

@@ -232,9 +232,14 @@ inventory pass over AADT's crates before any porting starts).
   Migrate `EntityIds` once collision risk actually matters (see roadmap).
 - **No pull-side command yet** — `ACCELDRAW_SHILPI_PUSH` exists,
   `ACCELDRAW_SHILPI_PULL` / an overlay-from-ShilpiDB command doesn't.
-- **The .NET side now builds and its tests pass** (`dotnet build AccelDraw.sln`,
-  `dotnet test` on both test projects) — see PLAN-OF-ACTION.md for the fixes
-  that took. **The Rust side (`bridge/accel-bridge-native`) is still
-  unverified** — a Rust toolchain install was in progress as of this
-  writing; nothing in `bridge/` has compiled yet. Treat it as
-  reviewed-but-unverified until `cargo build` and the smoke test both pass.
+- **Both the .NET and Rust sides now build, and the full bridge round-trips
+  for real.** `dotnet build AccelDraw.sln` and both test projects pass; the
+  Windows toolchain needed the GNU host (`stable-x86_64-pc-windows-gnu`),
+  not MSVC — MSVC's `rustc` runs but has no linker without Visual C++ Build
+  Tools installed, which this machine doesn't have; the GNU host bundles its
+  own. `cargo build --release -p accel-bridge-native` pulled `shilpidb`/
+  `shilpi-client` at the pinned commit and compiled clean on the first try.
+  `AccelDraw.Bridge.Smoke.exe` against a real `shilpid` printed
+  `SMOKE PASSED` — put/get/query_bbox/delete all round-tripped correctly
+  (exact bbox and payload text back). NETLOAD against real AutoCAD is the
+  one path still unverified.

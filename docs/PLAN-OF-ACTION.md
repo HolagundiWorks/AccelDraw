@@ -31,32 +31,39 @@ namespace when referenced from a sibling namespace (renamed to
 
 ## 2. Get the ShilpiDB bridge building
 
-1. Install Rust. `winget install --id Rustlang.Rustup --silent` starts an
+**Done: steps 1-4, verified end to end.** Notes for reproducing on another
+machine:
+
+1. Rust toolchain: `winget install --id Rustlang.Rustup --silent` starts an
    interactive `rustup-init.exe` that winget's silent flag doesn't actually
-   suppress (it just hangs) — download `rustup-init.exe` directly from
-   `https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe`
-   and run it with explicit non-interactive flags instead:
+   suppress (it just hangs indefinitely). Download `rustup-init.exe`
+   directly and run it with explicit non-interactive flags instead:
    ```powershell
-   & .\rustup-init.exe -y --default-host x86_64-pc-windows-gnu --default-toolchain stable --profile default
+   Invoke-WebRequest -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe" -OutFile rustup-init.exe
+   .\rustup-init.exe -y --default-host x86_64-pc-windows-gnu --default-toolchain stable --profile default
    ```
-   The GNU host (not MSVC) is deliberate: the MSVC host needs the Visual
-   C++ Build Tools linker, which isn't installed on this machine either;
-   the GNU host bundles its own linker via `rustup`, no Visual Studio
-   required. Confirm with `rustc --version` and `cargo --version` in a
-   **fresh** shell (PATH is only picked up by new processes).
-2. `cd bridge && cargo build --release -p accel-bridge-native`. This pulls
-   `shilpidb`/`shilpi-client` from GitHub at the pinned commit — fix the
-   pinned `rev` in `bridge/accel-bridge-native/Cargo.toml` if that commit
-   ever gets rewritten/force-pushed away.
+   The GNU host (not MSVC) is required, not just preferred: the MSVC host's
+   `rustc` runs fine but has no linker without Visual C++ Build Tools, which
+   this machine doesn't have. The GNU host bundles its own linker (`ld.exe`
+   under `rustlib/.../bin/self-contained/`), so `cargo build` links without
+   installing Visual Studio at all. Confirm with `rustup default
+   stable-x86_64-pc-windows-gnu` and `rustc --version` in a fresh shell.
+2. `cd bridge && cargo build --release -p accel-bridge-native` — pulled
+   `shilpidb`/`shilpi-client` from GitHub at the pinned commit and compiled
+   clean, no fixes needed. Fix the pinned `rev` in
+   `bridge/accel-bridge-native/Cargo.toml` if that commit ever gets
+   rewritten/force-pushed away.
 3. Clone `shilpidb` locally (`gh repo clone HolagundiWorks/shilpidb`) if not
-   already present, and run a `shilpid` instance:
+   already present, build and run a `shilpid` instance:
    ```bash
-   cargo run -p shilpid --manifest-path ../shilpidb/Cargo.toml -- --bind 127.0.0.1:7420 --data ./smoke.vdb
+   cargo build --release -p shilpid -p shilpi --manifest-path ../shilpidb/Cargo.toml
+   ../shilpidb/target/release/shilpid.exe --bind 127.0.0.1:7420 --data ./smoke.vdb
    ```
-4. Copy `bridge/target/release/accel_bridge_native.dll` next to
-   `AccelDraw.Bridge.Smoke.exe`'s output, then
-   `dotnet run --project bridge/AccelDraw.Bridge.Smoke -- 127.0.0.1:7420` and
-   confirm `SMOKE PASSED`.
+4. `dotnet build bridge/AccelDraw.Bridge.Smoke/AccelDraw.Bridge.Smoke.csproj`,
+   copy `bridge/target/release/accel_bridge_native.dll` next to the built
+   `AccelDraw.Bridge.Smoke.exe`, then run
+   `AccelDraw.Bridge.Smoke.exe 127.0.0.1:7420` — confirmed `SMOKE PASSED`
+   (put/get/query_bbox/delete all round-tripped the exact bbox and payload).
 5. Copy the same DLL next to `AccelDraw.Plugin.dll`'s output, set
    `ACCELDRAW_SHILPID_ADDR=127.0.0.1:7420`, and from inside AutoCAD run
    `ACCELDRAW_SHILPI_STATUS` (expect "ENABLED, connected"), then
