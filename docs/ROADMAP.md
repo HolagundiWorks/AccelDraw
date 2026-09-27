@@ -6,8 +6,9 @@ concrete next steps; this file is the longer arc.
 
 ## Phase 01 — Vector Memory & Time Machine (current)
 
-**Status: code scaffolded, not yet built or tested — no toolchain was
-available while writing it.**
+**Status: `AccelDraw.sln` builds clean and both unit test projects pass in
+full (.NET 8 SDK, targeting net48 against the AutoCAD 2022 reference
+assemblies). Not yet run inside real AutoCAD.**
 
 - [x] Normalized entity model + comparer (`AccelDraw.Geometry`)
 - [x] `.adw` local package format (`AccelDraw.Snapshot`)
@@ -20,8 +21,10 @@ available while writing it.**
       [ARCHITECTURE.md §4](ARCHITECTURE.md#4-anchors-extents-and-partial-restore)
 - [x] `ACCELDRAW_STATUS` — snapshot count/disk usage, floor anchor count, ShilpiDB reachability
 - [x] Unit tests for the comparer, the `.adw` round trip, and floor anchor storage
-- [ ] **First real build** — install a .NET SDK, `dotnet build`, fix whatever
-      the compiler finds (see PLAN-OF-ACTION.md)
+- [x] **First real build** — `dotnet build AccelDraw.sln`, 0 errors/warnings;
+      fixed a `SnapshotStore.Directory` property shadowing `System.IO.Directory`,
+      a `Snapshot` type shadowed by its own namespace (renamed to
+      `LoadedSnapshot`), and a nonexistent `Vector3d.ZeroVector`
 - [ ] NETLOAD acceptance test against real AutoCAD (the 19-step test in the
       original milestone plan)
 - [ ] Entity support beyond the 7 milestone types (SPLINE, HATCH, DIMENSION,

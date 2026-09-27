@@ -232,6 +232,9 @@ inventory pass over AADT's crates before any porting starts).
   Migrate `EntityIds` once collision risk actually matters (see roadmap).
 - **No pull-side command yet** — `ACCELDRAW_SHILPI_PUSH` exists,
   `ACCELDRAW_SHILPI_PULL` / an overlay-from-ShilpiDB command doesn't.
-- **Nothing in this repo has been compiled.** No .NET SDK/MSBuild and no
-  Rust toolchain were available on the machine this was written on. Treat
-  every file as reviewed-but-unverified until a real build passes.
+- **The .NET side now builds and its tests pass** (`dotnet build AccelDraw.sln`,
+  `dotnet test` on both test projects) — see PLAN-OF-ACTION.md for the fixes
+  that took. **The Rust side (`bridge/accel-bridge-native`) is still
+  unverified** — a Rust toolchain install was in progress as of this
+  writing; nothing in `bridge/` has compiled yet. Treat it as
+  reviewed-but-unverified until `cargo build` and the smoke test both pass.

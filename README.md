@@ -10,11 +10,11 @@ AutoCAD fidelity) and as normalized vectors, and can optionally sync into
 spatial vector-store engine also used by AADT — so an AutoCAD drawing and a
 native ShilpiDB-backed drawing can live in one store.
 
-Status: **Phase 01 milestone, scaffolded but unbuilt.** No .NET SDK, MSBuild,
-or Rust toolchain has been available on the machine this was written on, so
-none of this has compiled or run yet. See
-[docs/PLAN-OF-ACTION.md](docs/PLAN-OF-ACTION.md) for exactly what to do once
-a toolchain is available.
+Status: **Phase 01 milestone.** The .NET solution builds clean (`dotnet build
+AccelDraw.sln`, 0 errors/warnings against the AutoCAD 2022 reference
+assemblies) and both unit test projects pass in full. Not yet verified: a
+real NETLOAD session against AutoCAD, and the ShilpiDB bridge (needs a Rust
+toolchain — see [docs/PLAN-OF-ACTION.md](docs/PLAN-OF-ACTION.md) for current status).
 
 ## Why this exists
 

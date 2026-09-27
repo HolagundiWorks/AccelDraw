@@ -6,19 +6,15 @@ like so it's checkable.
 
 ## 1. Get a real build (blocking everything else)
 
-Nothing in this repo has compiled yet. In order:
+**Done: steps 1-3.** The .NET 8 SDK is installed, `AccelDraw.sln` builds
+with 0 errors/warnings, and both test projects pass in full. Three bugs the
+compiler caught that a review pass missed: `SnapshotStore.Directory` (a
+property) shadowing the `System.IO.Directory` namespace inside its own
+constructor; the `Snapshot` class being resolved as its own containing
+namespace when referenced from a sibling namespace (renamed to
+`LoadedSnapshot`); and `Vector3d.ZeroVector`, which doesn't exist on
+`Autodesk.AutoCAD.Geometry.Vector3d`. Still open:
 
-1. Install a .NET SDK capable of `net48` (the Windows 11 targeting pack is
-   already present; the SDK is not):
-   ```powershell
-   winget install Microsoft.DotNet.SDK.8
-   ```
-2. `dotnet build AccelDraw.sln` from the repo root. Fix whatever the
-   compiler surfaces in `AccelDraw.Core/Geometry/Snapshot/Plugin/ShilpiDb` —
-   expect a few, this was written without a compiler in the loop.
-3. `dotnet test tests/AccelDraw.Geometry.Tests` and
-   `dotnet test tests/AccelDraw.Snapshot.Tests` — both should pass with no
-   AutoCAD or ShilpiDB running.
 4. `NETLOAD` `AccelDraw.Plugin.dll` into a real AutoCAD 2022 session and run
    the acceptance test from the original milestone plan (draw the 7
    supported entity types, `ACCELDRAW_SAVE`, modify the drawing,
@@ -35,8 +31,19 @@ Nothing in this repo has compiled yet. In order:
 
 ## 2. Get the ShilpiDB bridge building
 
-1. Install Rust: `winget install Rustlang.Rustup` (or rustup.rs), then
-   `rustup default stable`.
+1. Install Rust. `winget install --id Rustlang.Rustup --silent` starts an
+   interactive `rustup-init.exe` that winget's silent flag doesn't actually
+   suppress (it just hangs) — download `rustup-init.exe` directly from
+   `https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe`
+   and run it with explicit non-interactive flags instead:
+   ```powershell
+   & .\rustup-init.exe -y --default-host x86_64-pc-windows-gnu --default-toolchain stable --profile default
+   ```
+   The GNU host (not MSVC) is deliberate: the MSVC host needs the Visual
+   C++ Build Tools linker, which isn't installed on this machine either;
+   the GNU host bundles its own linker via `rustup`, no Visual Studio
+   required. Confirm with `rustc --version` and `cargo --version` in a
+   **fresh** shell (PATH is only picked up by new processes).
 2. `cd bridge && cargo build --release -p accel-bridge-native`. This pulls
    `shilpidb`/`shilpi-client` from GitHub at the pinned commit — fix the
    pinned `rev` in `bridge/accel-bridge-native/Cargo.toml` if that commit
