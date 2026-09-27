@@ -20,7 +20,14 @@ namespace AccelDraw.ShilpiDb
             _client = client;
         }
 
-        public void Push(VectorDocument document)
+        /// <summary>
+        /// Pushes every entity as its own record, plus — if <paramref name="tileExtent"/> is given —
+        /// one extra "tile" record at <c>{snapshotId}/tile</c> whose box is the snapshot's
+        /// manually-defined territory (see SnapshotManifest.Extent), not the union of its entities'
+        /// boxes. That's what lets a spatial query answer "which snapshot covers this point?" even
+        /// for a mostly-empty tile, or a tile whose declared boundary is bigger than what's drawn in it.
+        /// </summary>
+        public void Push(string snapshotId, ShilpiBbox? tileExtent, VectorDocument document)
         {
             foreach (var entity in document.Entities)
             {
@@ -32,6 +39,14 @@ namespace AccelDraw.ShilpiDb
                 byte[] payload = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(entity));
 
                 _client.Put(id, bbox, payload);
+            }
+
+            if (tileExtent.HasValue)
+            {
+                ulong tileId = EntityIds.ToRecordId(snapshotId + "/tile");
+                byte[] tilePayload = Encoding.UTF8.GetBytes(
+                    JsonConvert.SerializeObject(new { kind = "tile", snapshotId }));
+                _client.Put(tileId, tileExtent.Value, tilePayload);
             }
 
             _client.Save();

@@ -38,15 +38,21 @@ namespace AccelDraw.Plugin.Commands
             if (System.IO.File.Exists(snapshot.ExtractedDwgPath))
                 System.IO.File.Delete(snapshot.ExtractedDwgPath);
 
+            ShilpiBbox? tileExtent = null;
+            var extent = snapshot.Manifest.Extent;
+            if (extent?.Min != null && extent.Max != null)
+                tileExtent = ShilpiBbox.FromCorners(extent.Min[0], extent.Min[1], extent.Max[0], extent.Max[1]);
+
             try
             {
                 using (var client = ShilpiDbClient.Connect(ShilpiConfig.ServerAddress))
                 {
                     var sync = new ShilpiSnapshotSync(client);
-                    sync.Push(snapshot.Vectors);
+                    sync.Push(snapshotId, tileExtent, snapshot.Vectors);
                 }
 
-                ed.WriteMessage($"\nPushed {snapshot.Vectors.Entities.Count} entities from {snapshotId} to ShilpiDB at {ShilpiConfig.ServerAddress}.\n");
+                string tileNote = tileExtent.HasValue ? " + 1 tile boundary record" : "";
+                ed.WriteMessage($"\nPushed {snapshot.Vectors.Entities.Count} entities{tileNote} from {snapshotId} to ShilpiDB at {ShilpiConfig.ServerAddress}.\n");
             }
             catch (ShilpiDbException ex)
             {

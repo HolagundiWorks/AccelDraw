@@ -12,10 +12,14 @@ namespace AccelDraw.Plugin.Commands
     /// ACCELDRAW_OVERLAY (spec section 16): toggles a non-destructive, spatially-aligned overlay of a
     /// stored snapshot on top of the current drawing, on a dedicated temporary layer. Never
     /// modifies the source drawing beyond that temporary layer's contents.
+    ///
+    /// <see cref="EnsureOn"/>/<see cref="EnsureOff"/> are reused by <see cref="RestoreCommand"/>'s
+    /// partial-restore flow: overlay first, let the user select which overlaid entities to keep,
+    /// restore just those, then clear whatever overlay is left.
     /// </summary>
     public class OverlayCommand
     {
-        private const string OverlayLayerName = "AccelDraw$OVERLAY";
+        internal const string OverlayLayerName = "AccelDraw$OVERLAY";
 
         [CommandMethod("ACCELDRAW_OVERLAY")]
         public void Execute()
@@ -24,15 +28,26 @@ namespace AccelDraw.Plugin.Commands
             var db = doc.Database;
             var ed = doc.Editor;
 
-            if (OverlayIsOn(db))
+            if (IsOn(db))
             {
-                TurnOff(db);
+                EnsureOff(db);
                 ed.WriteMessage("\nOverlay OFF\n");
                 return;
             }
 
             string snapshotId = SnapshotPrompt.PromptForSnapshotId(ed, doc, "Snapshot to overlay");
             if (snapshotId == null)
+                return;
+
+            EnsureOn(doc, snapshotId);
+            ed.WriteMessage($"\nOverlay ON ({snapshotId})\n");
+        }
+
+        /// <summary>Overlays the given snapshot if no overlay is currently showing. No-op if one already is.</summary>
+        internal static void EnsureOn(Document doc, string snapshotId)
+        {
+            var db = doc.Database;
+            if (IsOn(db))
                 return;
 
             var store = new SnapshotStore(DrawingContext.SnapshotsDirectory(doc));
@@ -62,8 +77,6 @@ namespace AccelDraw.Plugin.Commands
                         entity.Layer = OverlayLayerName;
                     }
                 });
-
-                ed.WriteMessage($"\nOverlay ON ({snapshotId})\n");
             }
             finally
             {
@@ -90,7 +103,7 @@ namespace AccelDraw.Plugin.Commands
             tr.AddNewlyCreatedDBObject(ltr, true);
         }
 
-        private static bool OverlayIsOn(Database db)
+        internal static bool IsOn(Database db)
         {
             return TransactionHelper.RunTransacted(db, tr =>
             {
@@ -111,7 +124,8 @@ namespace AccelDraw.Plugin.Commands
             });
         }
 
-        private static void TurnOff(Database db)
+        /// <summary>Erases every entity still on the overlay layer. Safe to call when overlay is already off.</summary>
+        internal static void EnsureOff(Database db)
         {
             TransactionHelper.RunTransacted(db, tr =>
             {

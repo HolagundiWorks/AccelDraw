@@ -12,7 +12,14 @@ available while writing it.**
 - [x] Normalized entity model + comparer (`AccelDraw.Geometry`)
 - [x] `.adw` local package format (`AccelDraw.Snapshot`)
 - [x] `ACCELDRAW_SAVE` / `SNAPSHOTS` / `OVERLAY` / `COMPARE` / `RESTORE`
-- [x] Unit tests for the comparer and the `.adw` round trip
+- [x] Anchor point + manually-defined extent (tile boundary) on every
+      snapshot; `ACCELDRAW_ANCHOR` for named, project-wide floor anchors;
+      `ACCELDRAW_RESTORE` can restore Full or Partial (select from the
+      overlay), and Full restore can land at the original point, a picked
+      point, or wherever a floor anchor currently sits — see
+      [ARCHITECTURE.md §4](ARCHITECTURE.md#4-anchors-extents-and-partial-restore)
+- [x] `ACCELDRAW_STATUS` — snapshot count/disk usage, floor anchor count, ShilpiDB reachability
+- [x] Unit tests for the comparer, the `.adw` round trip, and floor anchor storage
 - [ ] **First real build** — install a .NET SDK, `dotnet build`, fix whatever
       the compiler finds (see PLAN-OF-ACTION.md)
 - [ ] NETLOAD acceptance test against real AutoCAD (the 19-step test in the
@@ -28,7 +35,8 @@ available while writing it.**
 
 - [x] `accel-bridge-native` (Rust cdylib, C ABI over `shilpi-client`)
 - [x] `AccelDraw.Bridge.Native` / `AccelDraw.Bridge` (P/Invoke + friendly wrapper)
-- [x] `AccelDraw.ShilpiDb` (entity <-> record mapping: bbox + JSON payload)
+- [x] `AccelDraw.ShilpiDb` (entity <-> record mapping: bbox + JSON payload,
+      plus one tile-boundary record per snapshot from its manually-defined extent)
 - [x] `ACCELDRAW_SHILPI_STATUS`, `ACCELDRAW_SHILPI_PUSH`
 - [ ] **First real build** of the Rust crate (`cargo build -p accel-bridge-native`)
       and the smoke test against a real `shilpid` — install `rustup` first
@@ -51,7 +59,7 @@ AutoCAD process.
 
 ## Phase 03 — AADT capability migration
 
-Per the consolidation decision in [ARCHITECTURE.md §5](ARCHITECTURE.md#5-aadt-consolidation-decision):
+Per the consolidation decision in [ARCHITECTURE.md §6](ARCHITECTURE.md#6-aadt-consolidation-decision):
 AccelDraw supersedes AADT. Before porting anything, inventory what AADT
 actually has and sort each crate into one of three buckets:
 
@@ -65,7 +73,7 @@ This phase starts with the inventory pass (PLAN-OF-ACTION.md), not code.
 
 ## Phase 04 — AI integration layer
 
-Per [ARCHITECTURE.md §4](ARCHITECTURE.md#4-the-ai-plug-in-seam):
+Per [ARCHITECTURE.md §5](ARCHITECTURE.md#5-the-ai-plug-in-seam):
 
 1. `IAiProvider` interface in `AccelDraw.Core`.
 2. `CloudAiProvider` (Anthropic/OpenAI-compatible HTTPS) and `LocalAiProvider`

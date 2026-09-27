@@ -32,7 +32,7 @@ AutoCAD automation code.
 | [`src/AccelDraw.Geometry`](src/AccelDraw.Geometry) | Pure C#, no AutoCAD dependency. Normalized entity/geometry model and the deterministic UNCHANGED/MOVED/MODIFIED/ADDED/REMOVED comparer. |
 | [`src/AccelDraw.Snapshot`](src/AccelDraw.Snapshot) | The `.adw` package format (manifest + vectors + native DWG, zipped) and the local snapshot store. |
 | [`src/AccelDraw.Core`](src/AccelDraw.Core) | The `IVectorExtractor` / `ISnapshotService` / `IGeometryComparer` contracts a future AI/automation layer should call instead of touching AutoCAD directly. |
-| [`src/AccelDraw.Plugin`](src/AccelDraw.Plugin) | The AutoCAD .NET add-in: `ACCELDRAW_SAVE`, `ACCELDRAW_SNAPSHOTS`, `ACCELDRAW_OVERLAY`, `ACCELDRAW_COMPARE`, `ACCELDRAW_RESTORE`, `ACCELDRAW_SHILPI_STATUS`, `ACCELDRAW_SHILPI_PUSH`. |
+| [`src/AccelDraw.Plugin`](src/AccelDraw.Plugin) | The AutoCAD .NET add-in: `ACCELDRAW_SAVE`, `ACCELDRAW_SNAPSHOTS`, `ACCELDRAW_OVERLAY`, `ACCELDRAW_COMPARE`, `ACCELDRAW_RESTORE` (Full/Partial, with anchor-aware repositioning), `ACCELDRAW_ANCHOR`, `ACCELDRAW_STATUS`, `ACCELDRAW_SHILPI_STATUS`, `ACCELDRAW_SHILPI_PUSH`. |
 | [`src/AccelDraw.ShilpiDb`](src/AccelDraw.ShilpiDb) | Maps AccelDraw's entity model onto ShilpiDB records (bbox + JSON payload) over the native bridge. |
 | [`bridge`](bridge) | The native bridge to ShilpiDB: a Rust `cdylib` (`accel-bridge-native`) plus C# P/Invoke layers (`AccelDraw.Bridge.Native`, `AccelDraw.Bridge`) and a standalone smoke test. See [`bridge/README.md`](bridge/README.md). |
 | `tests/` | Unit tests for the comparer and the `.adw` round trip — no AutoCAD needed to run these. |

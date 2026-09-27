@@ -24,6 +24,14 @@ Nothing in this repo has compiled yet. In order:
    supported entity types, `ACCELDRAW_SAVE`, modify the drawing,
    `ACCELDRAW_OVERLAY`, `ACCELDRAW_COMPARE`, `ACCELDRAW_RESTORE`, reopen and
    reload from disk).
+5. Additionally exercise what was added after that plan: `ACCELDRAW_ANCHOR
+   Define` a floor anchor, `ACCELDRAW_SAVE` a snapshot against it, redefine
+   the anchor to a new point, `ACCELDRAW_RESTORE` → Full → Anchor and confirm
+   the restored geometry follows the new anchor position; separately,
+   `ACCELDRAW_RESTORE` → Partial and confirm only the entities you select
+   from the overlay come back, with their original layer/color/linetype
+   intact (not stuck on the `AccelDraw$OVERLAY` layer); run `ACCELDRAW_STATUS`
+   and confirm the counts match what you actually saved.
 
 ## 2. Get the ShilpiDB bridge building
 

@@ -12,7 +12,12 @@ namespace AccelDraw.Plugin.AutoCAD
     /// </summary>
     public static class EntityCloner
     {
-        /// <summary>Creates a brand-new side database containing deep clones of the given entities' model space.</summary>
+        /// <summary>
+        /// Creates a brand-new side database containing deep clones of the given entities' model
+        /// space, each tagged (via <see cref="EntityTag"/>) with its handle in <paramref name="sourceDb"/>
+        /// — the same handle <c>EntityReader</c> recorded as <c>VectorEntity.SourceHandle</c> — so a
+        /// later clone of these clones (e.g. an overlay) can still be traced back to its vectors.json entry.
+        /// </summary>
         public static Database CloneToNewDatabase(Database sourceDb, IEnumerable<ObjectId> ids)
         {
             var destDb = new Database(true, true);
@@ -25,11 +30,31 @@ namespace AccelDraw.Plugin.AutoCAD
                 var destBtr = (BlockTableRecord)trDest.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
 
                 sourceDb.WblockCloneObjects(idsToClone, destBtr.ObjectId, mapping, DuplicateRecordCloning.Replace, false);
+                TagClonesWithSourceHandle(sourceDb, destDb, mapping, trDest);
 
                 trDest.Commit();
             }
 
             return destDb;
+        }
+
+        private static void TagClonesWithSourceHandle(Database sourceDb, Database destDb, IdMapping mapping, Transaction trDest)
+        {
+            using (var trSource = sourceDb.TransactionManager.StartTransaction())
+            {
+                foreach (IdPair pair in mapping)
+                {
+                    if (!pair.IsCloned)
+                        continue;
+
+                    if (!(trSource.GetObject(pair.Key, OpenMode.ForRead) is Entity sourceEntity))
+                        continue;
+
+                    EntityTag.WriteSourceHandle(trDest, destDb, pair.Value, sourceEntity.Handle.ToString());
+                }
+
+                trSource.Commit();
+            }
         }
 
         /// <summary>

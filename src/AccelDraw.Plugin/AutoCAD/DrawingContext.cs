@@ -29,6 +29,14 @@ namespace AccelDraw.Plugin.AutoCAD
             return fallback;
         }
 
+        /// <summary>
+        /// Where floor anchors are shared across every drawing in this project (e.g. one per floor
+        /// of a building, each saved from its own DWG) — one level up from the per-drawing
+        /// "snapshots" folder, so all floors of a project that share that folder share anchors too.
+        /// </summary>
+        public static string ProjectAnchorsPath(Document doc) =>
+            Path.Combine(Path.GetDirectoryName(SnapshotsDirectory(doc)) ?? SnapshotsDirectory(doc), "floor-anchors.json");
+
         public static string DrawingName(Document doc)
         {
             string dwgPath = doc.Name;

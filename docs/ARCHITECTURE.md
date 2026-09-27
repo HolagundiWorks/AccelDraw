@@ -17,7 +17,7 @@
                               |                           |
                          shilpid server            ShilpiDB Desktop (GUI)
                               |
-                        AADT (native CAD app, being superseded — see §5)
+                        AADT (native CAD app, being superseded — see §6)
 ```
 
 AutoCAD remains the drafting surface. AccelDraw is the bridge between it and
@@ -59,7 +59,7 @@ ABI, plus a P/Invoke layer (`bridge/AccelDraw.Bridge.Native` /
 depending on ShilpiDB's Rust crates directly, pinned to one commit
 (`bridge/accel-bridge-native/Cargo.toml`), the same convention `aadt-vdb`
 uses. `shilpi-http` remains available as a zero-build fallback if the native
-DLL can't be shipped in some deployment (see §6 open questions).
+DLL can't be shipped in some deployment (see §7 open questions).
 
 ### 3.2 Data flow
 
@@ -73,7 +73,7 @@ new is `AccelDraw.ShilpiDb`, which:
    the record's opaque JSON payload — ShilpiDB is schema-agnostic by design,
    so the entity schema lives entirely on the AccelDraw side.
 3. Derives a `u64` record id from `SnapshotEntityId` via FNV-1a
-   (`EntityIds`) — a known simplification; see §6.
+   (`EntityIds`) — a known simplification; see §7.
 
 `ACCELDRAW_SHILPI_PUSH` is the only wired command today: it pushes an
 already-saved local snapshot's entities into a running `shilpid`. Pulling a
@@ -91,7 +91,62 @@ offline still holds. Making ShilpiDB the *primary* store (so overlay/compare/
 restore read from it directly, and AutoCAD and AADT genuinely share live
 state rather than a manually-pushed mirror) is roadmap work, not done here.
 
-## 4. The AI plug-in seam
+## 4. Anchors, extents, and partial restore
+
+Three related additions to the original Time Machine model, all implemented:
+
+**Anchor point.** What the milestone plan called a snapshot's "base point"
+is now explicitly the snapshot's *local origin* — `ACCELDRAW_SAVE` prompts
+for it as "Anchor point". It's still just a WCS point stored in the
+manifest; nothing changed about what it *is*, only what it's for (see
+"restore at" below).
+
+**Extent (the tile boundary).** `ACCELDRAW_SAVE` now also prompts for a
+rectangle (two corners, rubber-banded like a window select) that defines
+how far this snapshot's "territory" extends — deliberately independent of
+the union of its entities' own bounding boxes. A snapshot can legitimately
+declare a boundary bigger (or smaller) than what's currently drawn inside
+it, e.g. a fixed grid cell for a floor plan that isn't fully drawn yet.
+Stored as `SnapshotManifest.Extent` (`extent.min`/`extent.max`) and, when
+`ACCELDRAW_SHILPI_PUSH` runs, pushed to ShilpiDB as one extra "tile" record
+per snapshot (`{snapshotId}/tile`, see `ShilpiSnapshotSync.Push`) — so a
+spatial query against ShilpiDB can answer "which snapshot covers this
+point?" even where no entity happens to sit.
+
+**Floor anchors.** `ACCELDRAW_ANCHOR` defines/lists named, project-wide WCS
+reference points (`floor-anchors.json`, one level above the per-drawing
+`snapshots/` folder, so every drawing saving into that folder shares the
+same anchors) — e.g. "Ground Floor", "First Floor". `ACCELDRAW_SAVE`
+optionally records which anchor a snapshot was taken relative to, plus that
+anchor's origin *at save time* (`SnapshotManifest.FloorAnchor`).
+`ACCELDRAW_RESTORE`, in Full mode, can then restore "at Anchor": it looks
+up the anchor's *current* origin, diffs it against the origin recorded at
+save time, and applies that delta as a translation — so if a floor's anchor
+gets redefined later (the floor plan moves), previously-saved snapshots
+follow it instead of staying pinned to stale coordinates. This is the
+"anchor grids at larger distance" design from the original request,
+implemented as a flat per-project list rather than a literal grid — nothing
+stops a caller from naming anchors on a grid pattern if that's useful, the
+store doesn't impose one.
+
+**Partial restore.** `ACCELDRAW_RESTORE` prompts for Full or Partial.
+Partial: it overlays the snapshot (reusing `ACCELDRAW_OVERLAY`'s locked
+`AccelDraw$OVERLAY` layer — `OverlayCommand.EnsureOn`/`EnsureOff`), lets the
+user select which overlaid entities to keep via ordinary AutoCAD selection
+(filtered to that layer), and restores only those — reusing AutoCAD's own
+picking model instead of a custom UI. The mechanism that makes this work
+without depending on AutoCAD's undocumented handle-preservation behavior
+across clones: `EntityCloner.CloneToNewDatabase` tags every entity it clones
+into a snapshot's side DWG with its *original* handle via XData
+(`EntityTag`), and XData reliably survives every subsequent clone AutoCAD
+does — so when the user selects an overlaid (twice-cloned) entity, reading
+its XData back still gives the exact handle `EntityReader` recorded as
+`VectorEntity.SourceHandle` at save time, which is how the partial-restore
+path recovers that entity's original layer/color/linetype/lineweight
+(`RestoreCommand.ApplyOriginalProperties`) instead of leaving it on the
+overlay layer.
+
+## 5. The AI plug-in seam
 
 Per the original spec's non-negotiable rule (its §24, carried forward
 verbatim): **an AI agent never generates or executes arbitrary AutoCAD
@@ -143,7 +198,7 @@ is configured; `AccelDraw.Plugin` and any future command-parsing layer code
 against `IAiProvider` only, never against a specific vendor SDK. See
 docs/ROADMAP.md phase 4 for when this actually gets built.
 
-## 5. AADT: consolidation decision
+## 6. AADT: consolidation decision
 
 **Decision (this session, per the repo owner):** AccelDraw supersedes AADT.
 AADT stops being developed as a separate native CAD app; AccelDraw is the
@@ -170,7 +225,7 @@ See docs/ROADMAP.md phase 3 for the capability-by-capability list this
 produces, and docs/PLAN-OF-ACTION.md for the first concrete step (an
 inventory pass over AADT's crates before any porting starts).
 
-## 6. Open questions / known simplifications
+## 7. Open questions / known simplifications
 
 - **FNV-1a entity ids** (§3.2) risk collision at scale; AADT's blake3-based
   content-addressed ids (its ADR-0021) are the ecosystem's real answer.
