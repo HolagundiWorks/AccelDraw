@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace AccelDraw.Snapshot
 {
-    /// <summary>Reads a .adw package back into a <see cref="Snapshot"/> (spec section 6-7).</summary>
+    /// <summary>Reads a .adw package back into a <see cref="LoadedSnapshot"/> (spec section 6-7).</summary>
     public class SnapshotReader
     {
         public SnapshotManifest ReadManifest(string packagePath)
@@ -27,7 +27,7 @@ namespace AccelDraw.Snapshot
         /// Loads the full snapshot: manifest, normalized vectors, and extracts snapshot.dwg to a
         /// fresh temp file (the caller is responsible for opening/disposing it via the AutoCAD API).
         /// </summary>
-        public Snapshot Load(string packagePath)
+        public LoadedSnapshot Load(string packagePath)
         {
             var manifest = ReadManifest(packagePath);
             VectorDocument vectors;
@@ -48,7 +48,7 @@ namespace AccelDraw.Snapshot
                 dwgEntry.ExtractToFile(extractedDwgPath, overwrite: true);
             }
 
-            return new Snapshot
+            return new LoadedSnapshot
             {
                 Manifest = manifest,
                 Vectors = vectors,

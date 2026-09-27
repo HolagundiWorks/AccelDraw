@@ -103,7 +103,7 @@ namespace AccelDraw.Plugin.Commands
         /// freshly picked point, or — if available — wherever the snapshot's floor anchor currently
         /// sits in this project. Returns null (with the prompt left as cancelled) if the user backs out.
         /// </summary>
-        private Vector3d? PromptTranslation(Document doc, Editor ed, AccelDraw.Snapshot.Snapshot snapshot)
+        private Vector3d? PromptTranslation(Document doc, Editor ed, AccelDraw.Snapshot.LoadedSnapshot snapshot)
         {
             var manifest = snapshot.Manifest;
             bool hasAnchor = manifest.FloorAnchor != null;
@@ -138,7 +138,7 @@ namespace AccelDraw.Plugin.Commands
                 if (currentAnchor == null)
                 {
                     ed.WriteMessage($"\nFloor anchor '{manifest.FloorAnchor.Name}' is not defined in this project — restoring at the original point instead.\n");
-                    return Vector3d.ZeroVector;
+                    return new Vector3d(0, 0, 0);
                 }
 
                 var savedOrigin = manifest.FloorAnchor.OriginAtSave;
@@ -149,7 +149,7 @@ namespace AccelDraw.Plugin.Commands
                 return delta;
             }
 
-            return Vector3d.ZeroVector;
+            return new Vector3d(0, 0, 0);
         }
 
         private void ExecutePartial(Document doc, Database db, Editor ed, string snapshotId)

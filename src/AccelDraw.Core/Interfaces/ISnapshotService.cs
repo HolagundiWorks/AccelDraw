@@ -6,10 +6,10 @@ namespace AccelDraw.Core.Interfaces
     /// <summary>Time Machine snapshot lifecycle (spec section 27).</summary>
     public interface ISnapshotService
     {
-        Snapshot CreateSnapshot(VectorDocument document);
+        LoadedSnapshot CreateSnapshot(VectorDocument document);
 
-        Snapshot LoadSnapshot(string snapshotId);
+        LoadedSnapshot LoadSnapshot(string snapshotId);
 
-        void RestoreSnapshot(Snapshot snapshot);
+        void RestoreSnapshot(LoadedSnapshot snapshot);
     }
 }

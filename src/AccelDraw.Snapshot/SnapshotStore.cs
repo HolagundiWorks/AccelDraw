@@ -19,8 +19,8 @@ namespace AccelDraw.Snapshot
         public SnapshotStore(string directory)
         {
             _directory = directory;
-            if (!Directory.Exists(_directory))
-                Directory.CreateDirectory(_directory);
+            if (!System.IO.Directory.Exists(_directory))
+                System.IO.Directory.CreateDirectory(_directory);
         }
 
         public string Directory => _directory;
