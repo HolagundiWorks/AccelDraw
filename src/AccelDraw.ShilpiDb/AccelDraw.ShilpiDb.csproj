@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>AccelDraw.ShilpiDb</RootNamespace>
+    <AssemblyName>AccelDraw.ShilpiDb</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AccelDraw.Geometry\AccelDraw.Geometry.csproj" />
+    <ProjectReference Include="..\..\bridge\AccelDraw.Bridge\AccelDraw.Bridge.csproj" />
+  </ItemGroup>
+
+</Project>

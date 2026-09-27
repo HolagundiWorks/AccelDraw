@@ -1,0 +1,16 @@
+[package]
+name = "accel-bridge-native"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "C ABI over shilpi-client, so AccelDraw.Bridge (.NET, P/Invoke) can talk to a running shilpid without an HTTP hop. Mirrors AADT's aadt-vdb client pattern, pinned to the same shilpidb commit convention."
+
+[lib]
+name = "accel_bridge_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+# Pinned by commit rev (not a tag) so this crate tracks one exact `shilpidb`
+# build, same convention AADT's aadt-vdb uses. Bump deliberately, not via `^`.
+shilpidb = { git = "https://github.com/HolagundiWorks/shilpidb", rev = "0797da6bb10954aff8dce604451c92d73374946e" }
+shilpi-client = { git = "https://github.com/HolagundiWorks/shilpidb", rev = "0797da6bb10954aff8dce604451c92d73374946e" }

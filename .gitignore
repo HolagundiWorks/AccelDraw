@@ -1,0 +1,12 @@
+bin/
+obj/
+.vs/
+*.dwl
+*.dwl2
+*.bak
+*.user
+snapshots/
+target/
+Cargo.lock
+*.vdb
+*.adw

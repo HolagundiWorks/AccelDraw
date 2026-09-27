@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>AccelDraw.Bridge.Smoke</RootNamespace>
+    <AssemblyName>AccelDraw.Bridge.Smoke</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AccelDraw.Bridge\AccelDraw.Bridge.csproj" />
+  </ItemGroup>
+
+</Project>

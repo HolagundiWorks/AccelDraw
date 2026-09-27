@@ -1,0 +1,12 @@
+<Project>
+
+  <!--
+    Path to the local AutoCAD install that provides the managed API reference assemblies
+    (accoremgd.dll, acdbmgd.dll, acmgd.dll). Override per-machine with an environment variable
+    or a -p:AutoCADInstallDir=... MSBuild argument if AutoCAD is installed somewhere else.
+  -->
+  <PropertyGroup>
+    <AutoCADInstallDir Condition="'$(AutoCADInstallDir)' == ''">C:\Program Files\Autodesk\AutoCAD 2022\</AutoCADInstallDir>
+  </PropertyGroup>
+
+</Project>

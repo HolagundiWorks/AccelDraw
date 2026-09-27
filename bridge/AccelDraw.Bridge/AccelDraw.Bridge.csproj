@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>AccelDraw.Bridge</RootNamespace>
+    <AssemblyName>AccelDraw.Bridge</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AccelDraw.Bridge.Native\AccelDraw.Bridge.Native.csproj" />
+  </ItemGroup>
+
+</Project>

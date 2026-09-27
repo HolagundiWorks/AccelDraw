@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>AccelDraw.Core</RootNamespace>
+    <AssemblyName>AccelDraw.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AccelDraw.Geometry\AccelDraw.Geometry.csproj" />
+    <ProjectReference Include="..\AccelDraw.Snapshot\AccelDraw.Snapshot.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- AutoCAD managed API reference assemblies; never redistributed (Private=false). -->
+    <Reference Include="AcDbMgd">
+      <HintPath>$(AutoCADInstallDir)acdbmgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="AcMgd">
+      <HintPath>$(AutoCADInstallDir)acmgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

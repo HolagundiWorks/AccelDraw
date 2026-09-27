@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>AccelDraw.Plugin</RootNamespace>
+    <AssemblyName>AccelDraw.Plugin</AssemblyName>
+    <!-- AutoCAD add-ins load as class libraries, not executables. -->
+    <OutputType>Library</OutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AccelDraw.Core\AccelDraw.Core.csproj" />
+    <ProjectReference Include="..\AccelDraw.Geometry\AccelDraw.Geometry.csproj" />
+    <ProjectReference Include="..\AccelDraw.Snapshot\AccelDraw.Snapshot.csproj" />
+    <ProjectReference Include="..\AccelDraw.ShilpiDb\AccelDraw.ShilpiDb.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- AutoCAD managed API reference assemblies; never redistributed (Private=false). -->
+    <Reference Include="AcCoreMgd">
+      <HintPath>$(AutoCADInstallDir)accoremgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="AcDbMgd">
+      <HintPath>$(AutoCADInstallDir)acdbmgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="AcMgd">
+      <HintPath>$(AutoCADInstallDir)acmgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
