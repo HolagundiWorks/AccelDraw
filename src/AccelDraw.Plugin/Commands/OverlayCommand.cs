@@ -71,7 +71,7 @@ namespace AccelDraw.Plugin.Commands
 
                     var mapping = EntityCloner.CloneInto(sideDb, sourceIds, db, destBtrId);
 
-                    foreach (var newId in EntityCloner.ClonedIds(mapping))
+                    foreach (var newId in EntityCloner.ClonedEntityIds(tr, mapping))
                     {
                         var entity = (Entity)tr.GetObject(newId, OpenMode.ForWrite);
                         entity.Layer = OverlayLayerName;
@@ -145,11 +145,20 @@ namespace AccelDraw.Plugin.Commands
                         toErase.Add(id);
                 }
 
+                // Entity.Erase() throws eOnLockedLayer on a locked layer (found live: NETLOAD
+                // acceptance test, "eOnLockedLayer" on the very first ON->OFF cycle) — unlock for
+                // the erase, then relock so the layer's still locked next time overlay turns on.
+                var layerRecord = (LayerTableRecord)tr.GetObject(layerId, OpenMode.ForWrite);
+                bool wasLocked = layerRecord.IsLocked;
+                layerRecord.IsLocked = false;
+
                 foreach (var id in toErase)
                 {
                     var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite);
                     ent.Erase();
                 }
+
+                layerRecord.IsLocked = wasLocked;
             });
         }
     }

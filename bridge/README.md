@@ -30,23 +30,45 @@ cd bridge
 cargo build --release -p accel-bridge-native
 ```
 
-Copy the resulting `target/release/accel_bridge_native.dll` next to
-`AccelDraw.Plugin.dll` (and next to `AccelDraw.Bridge.Smoke.exe` for the
-smoke test) — same "sidecar" pattern AADT and ShilpiDB's own GUI use for
-their native/Tauri binaries. A build step to automate that copy is future
-work (see [`docs/ROADMAP.md`](../docs/ROADMAP.md)).
+`AccelDraw.Bridge.Native.csproj` then **copies `accel_bridge_native.dll`
+automatically** into its own output and every downstream consumer's output
+(`AccelDraw.Bridge` → `AccelDraw.Plugin`, `AccelDraw.Manager`,
+`AccelDraw.Bridge.Smoke`) on the next `dotnet build`, via an MSBuild
+`None`/`CopyToOutputDirectory` item that picks up the release build (falling
+back to debug). This isn't cosmetic: forgetting this copy once caused a
+real, silent hang — a .NET Framework WinForms app's UI thread blocking on
+the `DllNotFoundException` from a P/Invoke call doesn't reliably surface as
+a visible dialog the way it does in a console app, so the window just sits
+there reporting "Responding" forever with 0% CPU. Found live testing
+`AccelDraw.Manager`; fixed once, structurally, so it can't recur silently.
+
+## Run a persistent local `shilpid`
+
+```powershell
+bridge\scripts\install-shilpid-local.ps1
+```
+
+Builds `shilpid`/`shilpi` from a local `shilpidb` checkout, installs them to
+`%LOCALAPPDATA%\ShilpiDB\bin` (added to your User `PATH`), points them at a
+persistent `%LOCALAPPDATA%\ShilpiDB\data\accel.vdb` (autosaving every 30s),
+sets `ACCELDRAW_SHILPID_ADDR` so `AccelDraw.Plugin`/`AccelDraw.Manager` pick
+it up with no manual config, adds a Startup-folder shortcut so it starts at
+login, and starts it immediately for the current session. Re-run any time to
+rebuild/reinstall — safe, idempotent, never touches the data file. Verify
+with `shilpi -e "stats" --host 127.0.0.1:7420` or `AccelDraw.Manager`'s
+ShilpiDB tab.
 
 ## Smoke test
 
 ```bash
-# terminal 1
-cargo run -p shilpid --manifest-path ../../shilpidb/Cargo.toml -- --bind 127.0.0.1:7420 --data ./smoke.vdb
+# if not already running via install-shilpid-local.ps1:
+shilpid --bind 127.0.0.1:7420 --data ./smoke.vdb
 
-# terminal 2 (after building accel_bridge_native.dll per above)
+# after building accel_bridge_native.dll per above:
 dotnet run --project AccelDraw.Bridge.Smoke -- 127.0.0.1:7420
 ```
 
 Expect `SMOKE PASSED`. This only proves the bridge and a live `shilpid` can
 round-trip a record — it does not exercise AutoCAD or the entity <-> record
 mapping in `AccelDraw.ShilpiDb` (that needs the full NETLOAD acceptance test
-in the root plan).
+in the root plan — already run once, see docs/PLAN-OF-ACTION.md).

@@ -10,13 +10,18 @@ AutoCAD fidelity) and as normalized vectors, and can optionally sync into
 spatial vector-store engine also used by AADT — so an AutoCAD drawing and a
 native ShilpiDB-backed drawing can live in one store.
 
-Status: **Phase 01 milestone.** The .NET solution builds clean (`dotnet build
-AccelDraw.sln`, 0 errors/warnings against the AutoCAD 2022 reference
-assemblies) and both unit test projects pass in full. The ShilpiDB native
-bridge builds too (`cargo build --release -p accel-bridge-native`) and its
-smoke test round-trips real put/get/query/delete calls against a live
-`shilpid`. The one thing still unverified: a real NETLOAD session inside
-AutoCAD itself — see [docs/PLAN-OF-ACTION.md](docs/PLAN-OF-ACTION.md).
+Status: **Phase 01 milestone, verified live.** The .NET solution builds
+clean and both unit test projects pass. A real NETLOAD session inside
+AutoCAD 2022 confirmed the plugin loads and `ACCELDRAW_SAVE` produces a
+correct `.adw` (real AutoCAD handles, exact geometry, anchor/extent/floor
+anchor all captured) — that pass also caught and fixed two real bugs
+(`ClonedEntityIds` hard-casting a non-`Entity` dependent object;
+`Entity.Erase()` on a locked overlay layer). The ShilpiDB native bridge
+builds and its smoke test round-trips real put/get/query/delete calls
+against a live, **persistently installed** local `shilpid` — see
+[`bridge/scripts/install-shilpid-local.ps1`](bridge/scripts/install-shilpid-local.ps1).
+A standalone `AccelDraw.Manager` GUI (no AutoCAD required) browses
+snapshots/anchors and talks to ShilpiDB directly — see Components below.
 
 ## Why this exists
 
@@ -36,7 +41,8 @@ AutoCAD automation code.
 | [`src/AccelDraw.Core`](src/AccelDraw.Core) | The `IVectorExtractor` / `ISnapshotService` / `IGeometryComparer` contracts a future AI/automation layer should call instead of touching AutoCAD directly. |
 | [`src/AccelDraw.Plugin`](src/AccelDraw.Plugin) | The AutoCAD .NET add-in: `ACCELDRAW_SAVE`, `ACCELDRAW_SNAPSHOTS`, `ACCELDRAW_OVERLAY`, `ACCELDRAW_COMPARE`, `ACCELDRAW_RESTORE` (Full/Partial, with anchor-aware repositioning), `ACCELDRAW_ANCHOR`, `ACCELDRAW_STATUS`, `ACCELDRAW_SHILPI_STATUS`, `ACCELDRAW_SHILPI_PUSH`. |
 | [`src/AccelDraw.ShilpiDb`](src/AccelDraw.ShilpiDb) | Maps AccelDraw's entity model onto ShilpiDB records (bbox + JSON payload) over the native bridge. |
-| [`bridge`](bridge) | The native bridge to ShilpiDB: a Rust `cdylib` (`accel-bridge-native`) plus C# P/Invoke layers (`AccelDraw.Bridge.Native`, `AccelDraw.Bridge`) and a standalone smoke test. See [`bridge/README.md`](bridge/README.md). |
+| [`src/AccelDraw.Manager`](src/AccelDraw.Manager) | Standalone WinForms desktop app — no AutoCAD needed to run it. Browse/delete `.adw` snapshots, manage project floor anchors, and test/push to ShilpiDB, all outside AutoCAD's command line. |
+| [`bridge`](bridge) | The native bridge to ShilpiDB: a Rust `cdylib` (`accel-bridge-native`) plus C# P/Invoke layers (`AccelDraw.Bridge.Native`, `AccelDraw.Bridge`), a standalone smoke test, and [`scripts/install-shilpid-local.ps1`](bridge/scripts/install-shilpid-local.ps1) for a persistent local `shilpid`. See [`bridge/README.md`](bridge/README.md). |
 | `tests/` | Unit tests for the comparer and the `.adw` round trip — no AutoCAD needed to run these. |
 
 ## Build

@@ -9,4 +9,27 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <!--
+    Every consumer that needs to actually call the bridge (not just compile against it) also
+    needs the native cdylib sitting next to its own .exe/.dll — MSBuild does NOT do this
+    automatically just because a managed assembly P/Invokes into it. Forgetting this step once
+    already caused a real, silent hang: a .NET Framework WinForms app's UI thread block on a
+    DllNotFoundException from a P/Invoke call doesn't always surface as a visible dialog the way
+    it does in a console app, so it just sits there looking "Responding: True" forever. Prefer the
+    release build; fall back to the debug build so a plain, non-release cargo build still works.
+  -->
+  <PropertyGroup>
+    <AccelBridgeNativeDll Condition="'$(AccelBridgeNativeDll)' == '' AND Exists('$(MSBuildThisFileDirectory)..\target\release\accel_bridge_native.dll')">$(MSBuildThisFileDirectory)..\target\release\accel_bridge_native.dll</AccelBridgeNativeDll>
+    <AccelBridgeNativeDll Condition="'$(AccelBridgeNativeDll)' == '' AND Exists('$(MSBuildThisFileDirectory)..\target\debug\accel_bridge_native.dll')">$(MSBuildThisFileDirectory)..\target\debug\accel_bridge_native.dll</AccelBridgeNativeDll>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(AccelBridgeNativeDll)' != ''">
+    <!-- CopyToOutputDirectory on a None/Content item flows through to every downstream project
+         that references this one (directly or transitively), landing next to each consumer's
+         own output — AccelDraw.Bridge, then AccelDraw.Plugin/Manager/Bridge.Smoke. -->
+    <None Include="$(AccelBridgeNativeDll)" Link="accel_bridge_native.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

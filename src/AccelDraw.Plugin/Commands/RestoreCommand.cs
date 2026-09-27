@@ -80,7 +80,7 @@ namespace AccelDraw.Plugin.Commands
                     if (translation.HasValue && !translation.Value.IsZeroLength())
                     {
                         var displacement = Matrix3d.Displacement(translation.Value);
-                        foreach (var newId in EntityCloner.ClonedIds(mapping))
+                        foreach (var newId in EntityCloner.ClonedEntityIds(tr, mapping))
                         {
                             var entity = (Entity)tr.GetObject(newId, OpenMode.ForWrite);
                             entity.TransformBy(displacement);

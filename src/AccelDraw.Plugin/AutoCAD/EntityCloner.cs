@@ -72,11 +72,22 @@ namespace AccelDraw.Plugin.AutoCAD
             return mapping;
         }
 
-        public static IEnumerable<ObjectId> ClonedIds(IdMapping mapping)
+        /// <summary>
+        /// Cloned object ids that are actual graphical entities — <c>WblockCloneObjects</c>'
+        /// mapping also includes non-graphical dependents it had to bring along (e.g. a
+        /// <see cref="RegAppTableRecord"/> backing an entity's XData, such as the one
+        /// <see cref="EntityTag"/> writes), which callers that assume "cloned drawing objects"
+        /// must not hard-cast to <see cref="Entity"/> — found the hard way via a live NETLOAD
+        /// test (InvalidCastException casting a RegAppTableRecord to Entity).
+        /// </summary>
+        public static IEnumerable<ObjectId> ClonedEntityIds(Transaction tr, IdMapping mapping)
         {
             foreach (IdPair pair in mapping)
             {
-                if (pair.IsCloned)
+                if (!pair.IsCloned)
+                    continue;
+
+                if (tr.GetObject(pair.Value, OpenMode.ForRead) is Entity)
                     yield return pair.Value;
             }
         }

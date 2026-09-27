@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>AccelDraw.Manager</RootNamespace>
+    <AssemblyName>AccelDraw.Manager</AssemblyName>
+    <ApplicationIcon />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AccelDraw.Geometry\AccelDraw.Geometry.csproj" />
+    <ProjectReference Include="..\AccelDraw.Snapshot\AccelDraw.Snapshot.csproj" />
+    <ProjectReference Include="..\AccelDraw.ShilpiDb\AccelDraw.ShilpiDb.csproj" />
+    <ProjectReference Include="..\..\bridge\AccelDraw.Bridge\AccelDraw.Bridge.csproj" />
+  </ItemGroup>
+
+</Project>

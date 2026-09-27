@@ -16,18 +16,21 @@ namespace when referenced from a sibling namespace (renamed to
 `Autodesk.AutoCAD.Geometry.Vector3d`. Still open:
 
 4. `NETLOAD` `AccelDraw.Plugin.dll` into a real AutoCAD 2022 session and run
-   the acceptance test from the original milestone plan (draw the 7
-   supported entity types, `ACCELDRAW_SAVE`, modify the drawing,
-   `ACCELDRAW_OVERLAY`, `ACCELDRAW_COMPARE`, `ACCELDRAW_RESTORE`, reopen and
-   reload from disk).
+   the acceptance test from the original milestone plan. **Partially done**:
+   drew LINE/CIRCLE/TEXT, ran `ACCELDRAW_SAVE` (name, anchor point, extent
+   corners all prompted and captured correctly — real handles, real
+   geometry, verified against the actual `.adw` on disk), `ACCELDRAW_SNAPSHOTS`,
+   `ACCELDRAW_STATUS`, and `ACCELDRAW_OVERLAY` (ON and OFF). Two real bugs
+   found and fixed this pass — see ROADMAP.md Phase 01. **Still to run**:
+   `ACCELDRAW_COMPARE` (move an entity, confirm MOVED shows up), `ACCELDRAW_RESTORE`
+   (Full and Partial), modify-the-drawing-then-reopen-and-reload-from-disk.
 5. Additionally exercise what was added after that plan: `ACCELDRAW_ANCHOR
    Define` a floor anchor, `ACCELDRAW_SAVE` a snapshot against it, redefine
    the anchor to a new point, `ACCELDRAW_RESTORE` → Full → Anchor and confirm
    the restored geometry follows the new anchor position; separately,
    `ACCELDRAW_RESTORE` → Partial and confirm only the entities you select
    from the overlay come back, with their original layer/color/linetype
-   intact (not stuck on the `AccelDraw$OVERLAY` layer); run `ACCELDRAW_STATUS`
-   and confirm the counts match what you actually saved.
+   intact (not stuck on the `AccelDraw$OVERLAY` layer). Not yet run.
 
 ## 2. Get the ShilpiDB bridge building
 
@@ -88,6 +91,25 @@ into actual code.** Once that happens, the recommended first pick is
 self-contained, and it directly unblocks layer-based classification
 ("line on the wall layer = wall part") rather than leaving that as a
 free-text guess.
+
+## 3b. Standalone GUI + persistent local ShilpiDB
+
+**Done.** `src/AccelDraw.Manager` — a WinForms desktop app needing no
+AutoCAD — browses `.adw` snapshots (with detail/delete/push-to-ShilpiDB),
+manages project floor anchors, and tests/pushes to ShilpiDB, all through a
+real UI instead of AutoCAD's command line. `bridge/scripts/install-shilpid-local.ps1`
+installs a persistent local `shilpid` (autosaving `.vdb`, on `PATH`,
+`ACCELDRAW_SHILPID_ADDR` set, starts at login) — verified via the `shilpi`
+CLI and `AccelDraw.Bridge.Smoke` against it.
+
+Verifying the Manager's own UI interactively (as opposed to the library
+code it calls, which is separately verified) turned out to need real mouse
+clicks on a legacy WinForms `TabControl` that doesn't expose a proper UIA
+`TabItem` tree — screen-coordinate automation across a multi-monitor setup
+proved too fragile to fully finish confirming the "Test Connection" button
+click-through, though the app itself was confirmed to load, render all
+three tabs/controls correctly, and no longer hang after the native-DLL fix.
+Worth a real manual click-through next time someone's at the machine.
 
 ## 4. AI provider seam (see ARCHITECTURE.md §4)
 

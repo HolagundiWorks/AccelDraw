@@ -32,6 +32,7 @@ milestone plan's non-goals; that is a later phase, deliberately.
 | Layer | Project | Depends on |
 | --- | --- | --- |
 | AutoCAD add-in | `AccelDraw.Plugin` | Core, Geometry, Snapshot, ShilpiDb |
+| Standalone GUI (no AutoCAD) | `AccelDraw.Manager` | Geometry, Snapshot, ShilpiDb, `bridge/AccelDraw.Bridge` |
 | Structured contracts for automation/AI | `AccelDraw.Core` | Geometry, Snapshot |
 | Normalized geometry + comparison | `AccelDraw.Geometry` | — (no AutoCAD, no ShilpiDB) |
 | Local `.adw` package | `AccelDraw.Snapshot` | Geometry |
@@ -90,6 +91,36 @@ deliberate — the original milestone's rule that Phase 01 works completely
 offline still holds. Making ShilpiDB the *primary* store (so overlay/compare/
 restore read from it directly, and AutoCAD and AADT genuinely share live
 state rather than a manually-pushed mirror) is roadmap work, not done here.
+
+### 3.4 Local ShilpiDB infrastructure
+
+`bridge/scripts/install-shilpid-local.ps1` turns "build the crate" into an
+actually-running local service: builds `shilpid`/`shilpi`, installs them to
+`%LOCALAPPDATA%\ShilpiDB\bin` (on `PATH`), points `shilpid` at a persistent,
+autosaving `%LOCALAPPDATA%\ShilpiDB\data\accel.vdb`, sets
+`ACCELDRAW_SHILPID_ADDR` so both `AccelDraw.Plugin` and `AccelDraw.Manager`
+find it with zero manual config, and adds a Startup-folder shortcut so it's
+running before either of them ever opens. It intentionally uses a
+Startup-folder shortcut rather than a Windows Service or Scheduled Task —
+the latter needs Task Scheduler access that isn't guaranteed available (it
+wasn't in the sandboxed session this was built in); a per-user shortcut
+needs nothing beyond filesystem access and is just as effective for a
+single-user dev machine.
+
+### 3.5 `AccelDraw.Manager` — a GUI that doesn't need AutoCAD
+
+`src/AccelDraw.Manager` is a small WinForms app over the exact same
+`AccelDraw.Snapshot`/`AccelDraw.ShilpiDb`/`bridge/AccelDraw.Bridge` types
+`AccelDraw.Plugin` uses — no AutoCAD reference, so it runs (and can be
+tested) standalone. It exists because driving snapshot/anchor/ShilpiDB
+management through AutoCAD's command line is genuinely painful to automate
+and only a little better to use by hand (see the NETLOAD session notes in
+PLAN-OF-ACTION.md for how much friction even a human-equivalent scripted
+session hit there). Three tabs: **Snapshots** (browse/delete/push a
+project's `.adw` files, manifest JSON on the side), **Floor Anchors**
+(browse/add), **ShilpiDB** (address, test connection, log). Read/manage
+only — creating a new snapshot still needs AutoCAD, since that's the one
+step that requires live drawing geometry.
 
 ## 4. Anchors, extents, and partial restore
 
@@ -232,14 +263,24 @@ inventory pass over AADT's crates before any porting starts).
   Migrate `EntityIds` once collision risk actually matters (see roadmap).
 - **No pull-side command yet** — `ACCELDRAW_SHILPI_PUSH` exists,
   `ACCELDRAW_SHILPI_PULL` / an overlay-from-ShilpiDB command doesn't.
-- **Both the .NET and Rust sides now build, and the full bridge round-trips
-  for real.** `dotnet build AccelDraw.sln` and both test projects pass; the
-  Windows toolchain needed the GNU host (`stable-x86_64-pc-windows-gnu`),
-  not MSVC — MSVC's `rustc` runs but has no linker without Visual C++ Build
-  Tools installed, which this machine doesn't have; the GNU host bundles its
-  own. `cargo build --release -p accel-bridge-native` pulled `shilpidb`/
-  `shilpi-client` at the pinned commit and compiled clean on the first try.
-  `AccelDraw.Bridge.Smoke.exe` against a real `shilpid` printed
-  `SMOKE PASSED` — put/get/query_bbox/delete all round-tripped correctly
-  (exact bbox and payload text back). NETLOAD against real AutoCAD is the
-  one path still unverified.
+- **Both the .NET and Rust sides build, and the full bridge round-trips for
+  real** against a persistent local `shilpid` (§3.4) — `AccelDraw.Bridge.Smoke`
+  and the `shilpi` CLI both confirm it. The Windows toolchain needed the GNU
+  host (`stable-x86_64-pc-windows-gnu`), not MSVC — MSVC's `rustc` runs but
+  has no linker without Visual C++ Build Tools, which this machine doesn't
+  have; the GNU host bundles its own.
+- **NETLOAD against real AutoCAD: partially verified.** `ACCELDRAW_SAVE`,
+  `SNAPSHOTS`, `STATUS`, and `OVERLAY` all confirmed working live, and that
+  pass caught two real bugs (both fixed — see ROADMAP.md Phase 01):
+  `EntityCloner` hard-casting a non-`Entity` `WblockCloneObjects` dependent,
+  and `Entity.Erase()` throwing on a locked overlay layer. `COMPARE`,
+  `RESTORE`, and `ANCHOR` are still unverified live.
+- **`AccelDraw.Manager`'s own UI is verified by code review and by its
+  underlying library calls (proven separately via the bridge smoke test),
+  not by a full interactive click-through** — its legacy WinForms
+  `TabControl` doesn't expose a proper UIA `TabItem` tree, and
+  screen-coordinate mouse automation across a multi-monitor session proved
+  too fragile to finish confirming the "Test Connection" button end to end.
+  The app itself loads, renders all three tabs, and (after the native-DLL
+  auto-copy fix — see bridge/README.md) no longer hangs — a manual
+  click-through is still worth doing.

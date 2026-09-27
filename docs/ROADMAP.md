@@ -6,9 +6,11 @@ concrete next steps; this file is the longer arc.
 
 ## Phase 01 — Vector Memory & Time Machine (current)
 
-**Status: `AccelDraw.sln` builds clean and both unit test projects pass in
-full (.NET 8 SDK, targeting net48 against the AutoCAD 2022 reference
-assemblies). Not yet run inside real AutoCAD.**
+**Status: `AccelDraw.sln` builds clean, both unit test projects pass, and a
+real NETLOAD session against AutoCAD 2022 confirmed the plugin loads and
+`ACCELDRAW_SAVE`/`SNAPSHOTS`/`STATUS`/`OVERLAY` all work correctly end to
+end (real handles, real geometry, a real `.adw` on disk). That pass also
+found and fixed two real bugs — see the entry below.**
 
 - [x] Normalized entity model + comparer (`AccelDraw.Geometry`)
 - [x] `.adw` local package format (`AccelDraw.Snapshot`)
@@ -25,8 +27,19 @@ assemblies). Not yet run inside real AutoCAD.**
       fixed a `SnapshotStore.Directory` property shadowing `System.IO.Directory`,
       a `Snapshot` type shadowed by its own namespace (renamed to
       `LoadedSnapshot`), and a nonexistent `Vector3d.ZeroVector`
-- [ ] NETLOAD acceptance test against real AutoCAD (the 19-step test in the
-      original milestone plan)
+- [x] **NETLOAD acceptance test, partial** — `ACCELDRAW_SAVE` (with a real
+      LINE/CIRCLE/TEXT selection, anchor point, and extent), `SNAPSHOTS`,
+      `STATUS`, and `OVERLAY` (both ON and OFF) all confirmed working live.
+      Found and fixed two real bugs surfaced only by real AutoCAD objects:
+      `EntityCloner.ClonedEntityIds` (was `ClonedIds`) hard-cast every
+      `WblockCloneObjects`-mapped id to `Entity`, which crashes when the
+      clone also drags along a non-graphical dependent (here, the
+      `RegAppTableRecord` `EntityTag` itself creates for XData) — now
+      filters to actual entities first. `OverlayCommand.EnsureOff` called
+      `Entity.Erase()` while the overlay layer was still locked
+      (`eOnLockedLayer`) — now unlocks for the erase, relocks after.
+      Still unverified: `COMPARE`, `RESTORE` (Full and Partial), `ANCHOR` —
+      interrupted mid-session; same acceptance test, next NETLOAD pass.
 - [ ] Entity support beyond the 7 milestone types (SPLINE, HATCH, DIMENSION,
       LEADER, MLEADER, SOLID, 3DFACE, ATTRIBUTEREFERENCE, 3DPOLYLINE,
       ELLIPSE, POLYLINE)
@@ -49,8 +62,15 @@ assemblies). Not yet run inside real AutoCAD.**
       side `ShilpiSnapshotSync.TryPull`/`QueryRegion` already support)
 - [ ] Replace FNV-1a entity ids with content-addressed ids (mirroring AADT's
       blake3 Merkle object ids, ADR-0021) once collision risk matters
-- [ ] A build/packaging step that copies `accel_bridge_native.dll` next to
-      `AccelDraw.Plugin.dll` automatically (currently manual, see bridge/README.md)
+- [x] Automatic `accel_bridge_native.dll` copy on build (an MSBuild item in
+      `AccelDraw.Bridge.Native.csproj` now flows it to every consumer) — this
+      wasn't just cosmetic: the missing DLL was silently hanging
+      `AccelDraw.Manager`'s UI thread (see bridge/README.md)
+- [x] `bridge/scripts/install-shilpid-local.ps1` — persistent local `shilpid`
+      (autosaving `.vdb`, `PATH`, `ACCELDRAW_SHILPID_ADDR`, start-at-login),
+      verified via `shilpi` CLI and `AccelDraw.Bridge.Smoke`
+- [x] `AccelDraw.Manager` — standalone WinForms GUI (snapshots, floor
+      anchors, ShilpiDB status/push), no AutoCAD needed to run it
 - [ ] Decide whether ShilpiDB becomes the *primary* store (compare/overlay/
       restore read from it directly) instead of an opt-in mirror of `.adw`
 
