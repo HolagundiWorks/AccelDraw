@@ -74,7 +74,10 @@ actually has and sort each crate into one of three buckets:
 | Extract to a shared crate | Useful to AccelDraw *and* any future non-AutoCAD surface | DXF import (`aadt-dxf`), the object/graph model (`aadt-object`, `aadt-graph`) if AccelDraw ends up needing its own outside AutoCAD's |
 | Drop | Only made sense for a standalone-app UI | `aadt-render` (Direct2D canvas), the WinUI shell (`native/aad-winui`), `aadt-lisp` console, installer |
 
-This phase starts with the inventory pass (PLAN-OF-ACTION.md), not code.
+This phase starts with the inventory pass, not code — **done**: see
+[docs/AADT-INVENTORY.md](AADT-INVENTORY.md) for the crate-by-crate bucket
+assignment (6 Port, 2 Extract, 15 Drop). Next: scope the first Port item
+(`aadt-standards`, a layer catalog) as its own task.
 
 ## Phase 04 — AI integration layer
 

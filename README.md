@@ -71,3 +71,4 @@ Then in AutoCAD: `NETLOAD` → `src/AccelDraw.Plugin/bin/.../AccelDraw.Plugin.dl
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — system design, ShilpiDB integration, the AI plug-in seam.
 - [docs/ROADMAP.md](docs/ROADMAP.md) — phased plan from here to a knowledge-graph-backed AI agent.
 - [docs/PLAN-OF-ACTION.md](docs/PLAN-OF-ACTION.md) — the concrete next-session checklist.
+- [docs/AADT-INVENTORY.md](docs/AADT-INVENTORY.md) — crate-by-crate Port/Extract/Drop triage of AADT ahead of the consolidation.

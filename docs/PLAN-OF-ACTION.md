@@ -73,17 +73,21 @@ machine:
 
 ## 3. AADT inventory pass (before any porting — see ROADMAP.md phase 3)
 
-1. For each crate under `AADT/crates/`, write one line: what it does, what
-   it depends on, and which ROADMAP.md phase-3 bucket (port / extract /
-   drop) it falls into. This is a reading/triage task, not a coding task —
-   don't start porting code until this list exists and the repo owner has
-   signed off on it.
-2. Flag anything that's load-bearing for AADT's WinUI shell specifically
-   (native/aad-winui, the bridge/ SSO pieces) as "drop" candidates by
-   default, since AccelDraw has no equivalent shell.
-3. Once the list exists, pick the single highest-value "port" or "extract"
-   item and scope it as its own follow-up task — don't try to do the whole
-   list in one pass.
+**Done** — see [docs/AADT-INVENTORY.md](AADT-INVENTORY.md): all 23 crates
+under `AADT/crates/` sorted into Port (6, as design reference — most of
+AADT is built over its own standalone document model, so this means
+reimplementing the *idea* against AutoCAD entities, not moving Rust code),
+Extract (2 — `aadt-geometry`, `aadt-dxf`), or Drop (15 — the standalone
+shell, its own document model/persistence/rendering, and everything built
+directly on top of those). WinUI-shell-specific pieces (`aadt-ffi`,
+`native/aad-winui`, the `bridge/` SSO pieces) landed in Drop as expected.
+
+**Still needs the repo owner's sign-off before any of the Port items turn
+into actual code.** Once that happens, the recommended first pick is
+`aadt-standards` (a real AIA/US NCS layer catalog) — smallest, most
+self-contained, and it directly unblocks layer-based classification
+("line on the wall layer = wall part") rather than leaving that as a
+free-text guess.
 
 ## 4. AI provider seam (see ARCHITECTURE.md §4)
 
