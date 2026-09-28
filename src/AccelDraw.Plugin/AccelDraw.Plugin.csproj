@@ -9,6 +9,9 @@
     <!-- AutoCAD add-ins load as class libraries, not executables. -->
     <OutputType>Library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- Needed for Autodesk.Windows (ribbon): RibbonButton.CommandHandler is
+         a System.Windows.Input.ICommand and ribbon layout types live in WPF. -->
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,6 +39,19 @@
       <HintPath>$(AutoCADInstallDir)acmgd.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="AdWindows">
+      <HintPath>$(AutoCADInstallDir)AdWindows.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Legacy LISP toolkit (lisp/), copied next to AccelDraw.Plugin.dll so
+         PluginEntry can load it by a path relative to its own assembly. -->
+    <None Include="..\..\lisp\**\*.lsp" Exclude="..\..\lisp\archive\**\*.lsp">
+      <Link>lisp\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

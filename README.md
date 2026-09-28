@@ -43,6 +43,7 @@ AutoCAD automation code.
 | [`src/AccelDraw.ShilpiDb`](src/AccelDraw.ShilpiDb) | Maps AccelDraw's entity model onto ShilpiDB records (bbox + JSON payload) over the native bridge. |
 | [`src/AccelDraw.Manager`](src/AccelDraw.Manager) | Standalone WinForms desktop app — no AutoCAD needed to run it. Browse/delete `.adw` snapshots, manage project floor anchors, and test/push to ShilpiDB, all outside AutoCAD's command line. |
 | [`bridge`](bridge) | The native bridge to ShilpiDB: a Rust `cdylib` (`accel-bridge-native`) plus C# P/Invoke layers (`AccelDraw.Bridge.Native`, `AccelDraw.Bridge`), a standalone smoke test, and [`scripts/install-shilpid-local.ps1`](bridge/scripts/install-shilpid-local.ps1) for a persistent local `shilpid`. See [`bridge/README.md`](bridge/README.md). |
+| [`lisp/`](lisp) | The legacy HCW/AccelDraw AutoLISP toolkit (area tables, metric room labels, text tools, layer standards, a manual layer-mapping dialog) — auto-loaded by `AccelDraw.Plugin` and exposed as an **AccelDraw Tools** ribbon tab. See below. |
 | `tests/` | Unit tests for the comparer and the `.adw` round trip — no AutoCAD needed to run these. |
 
 ## Build
@@ -62,6 +63,31 @@ To also build the ShilpiDB bridge, you additionally need a Rust toolchain —
 see [`bridge/README.md`](bridge/README.md).
 
 Then in AutoCAD: `NETLOAD` → `src/AccelDraw.Plugin/bin/.../AccelDraw.Plugin.dll`.
+
+## Legacy LISP toolkit
+
+[`lisp/`](lisp) holds AutoLISP tools carried over from day-to-day drafting
+work (area tables/labels, metric room tagging, text overlap/increment
+tools, window labels, and two AutoCAD layer-standard setups: `VHLAYERS`
+and the newer `HCWLAYERS`). `AccelDraw.Plugin` copies `lisp/` next to its
+own DLL, auto-loads the deduplicated toolkit on NETLOAD the same way an
+`acaddoc.lsp` would (see [`lisp/AccelDraw_LoadTools.lsp`](lisp/AccelDraw_LoadTools.lsp)
+for exactly which files load and why some originals are archived instead —
+several of the individually-supplied files were superseded by the
+consolidated `hcwtools.lsp`), and exposes the commands as a ribbon tab
+titled **AccelDraw Tools** (`src/AccelDraw.Plugin/UI/LegacyToolsRibbon.cs`).
+AutoCAD's managed API dropped the old classic-toolbar type, so a ribbon tab
+is the direct modern equivalent — it only appears in a ribbon-based
+workspace (e.g. *Drafting & Annotation*), not in a classic/no-ribbon one.
+
+New in this pass: **`LAYERMAP`** — a dialog for drawings that arrive with
+someone else's ad-hoc layer names. Multi-select any number of existing
+layers, pick one standard layer as the target, click "Map ->" (repeat for
+other groups), then "Apply Mappings" moves every entity across and
+optionally purges the emptied source layers. See
+[`lisp/LayerMapper.lsp`](lisp/LayerMapper.lsp).
+
+Type `ACCELDRAW_TOOLS_HELP` in AutoCAD for the full command list.
 
 ## Ecosystem
 

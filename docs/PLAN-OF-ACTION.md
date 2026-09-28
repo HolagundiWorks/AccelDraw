@@ -111,6 +111,28 @@ click-through, though the app itself was confirmed to load, render all
 three tabs/controls correctly, and no longer hang after the native-DLL fix.
 Worth a real manual click-through next time someone's at the machine.
 
+## 3c. Legacy LISP toolkit + ribbon
+
+**Mostly done, one item pending from the repo owner.** `lisp/` carries over
+the day-to-day AutoLISP toolkit (area tables, metric room tagging, text
+tools, window labels, `VHLAYERS`/`HCWLAYERS` layer standards, `LAYERMAP`
+for remapping an incoming drawing's ad-hoc layers onto those standards).
+`AccelDraw.Plugin` copies `lisp/` next to its DLL, auto-loads the
+deduplicated set on NETLOAD (`lisp/AccelDraw_LoadTools.lsp`), and exposes
+the commands as an **AccelDraw Tools** ribbon tab
+(`src/AccelDraw.Plugin/UI/LegacyToolsRibbon.cs` — built against
+`Autodesk.Windows`/`AdWindows.dll` since AutoCAD's managed API no longer has
+a classic toolbar type). Verified: solution builds clean; NETLOAD in a live
+AutoCAD 2022 session loads the plugin and the lisp toolkit without errors.
+**Not yet independently re-verified**: the ribbon tab's actual on-screen
+appearance in a ribbon workspace, and `LAYERMAP`'s multi-select-to-one-target
+flow end-to-end — both were exercised by the repo owner directly at the
+keyboard rather than through this session's own automation. The repo owner
+is currently cleaning up the supplied `.lsp` files and will hand over a
+final version — the load list in `AccelDraw_LoadTools.lsp` and the archived
+originals in `lisp/archive/` will need re-checking against whatever comes
+back for command-name collisions.
+
 ## 4. AI provider seam (see ARCHITECTURE.md §4)
 
 Not started. First concrete step once phases 1-2 above are green: add
